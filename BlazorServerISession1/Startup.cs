@@ -1,7 +1,13 @@
+using Blazored.SessionStorage.Serialization;
 using BlazorServerISession1.Data;
+using BlazorServerISession1.Middleware;
+using BlazorServerISession1.Models;
+using BlazorServerISession1.Serialization;
+using BlazorServerISession1.State;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,23 +32,20 @@ namespace BlazorServerISession1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddDistributedMemoryCache();
 
             int timeoutMinutes;
             int.TryParse(Configuration.GetSection("session").GetSection("Timeout").Value, out timeoutMinutes);
 
-            services.AddSession(sessionOptions => 
-            {
-                sessionOptions.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-                sessionOptions.Cookie.Name = "BlazorServerISession1.website";
-                sessionOptions.IdleTimeout = TimeSpan.FromMinutes(timeoutMinutes!=0?timeoutMinutes:10);
-            });
+            services.AddBlazoredSessionStorage();
+
             services.AddSingleton<WeatherForecastService>();
+            services.AddSingleton<CounterModel>();
+
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -58,8 +61,11 @@ namespace BlazorServerISession1
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
+
+            //app.UseSession();
 
             app.UseEndpoints(endpoints =>
             {
