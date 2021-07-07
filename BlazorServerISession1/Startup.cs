@@ -42,7 +42,7 @@ namespace BlazorServerISession1
             services.AddBlazoredSessionStorage();
 
             services.AddSingleton<WeatherForecastService>();
-            services.AddSingleton<CounterModel>();
+            services.AddScoped<CounterModel>();
 
         }
 
